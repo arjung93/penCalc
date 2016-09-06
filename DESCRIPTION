@@ -1,0 +1,22 @@
+Package: penCalc
+Title: A package to calcaulate the monthly pension recieved by a
+person after investing a portion of his wealth into an annuity. 
+Version: 0.1
+Authors@R: person("Renuka", "Sane", email = "renukas@gmail.com, role = c("aut", "cre")),
+person("Arjun", "Gupta", email = "arjung93@gmail.com, role = c("aut", "cre"))
+Description: A package to calcaulate the monthly pension recieved by a
+person after investing a portion of his wealth into an annuity. This
+package will estimate the income earned by the pensionee over his
+lifetime by investing a portion of it into bonds, equity etc. This
+package will estimate the the total income and monthly income  by an
+individual. 
+Depends: R (>= 3.2.5)
+License: CC0
+Encoding: UTF-8
+LazyData: true
+Imports:
+        ggplot2,
+        xtable,
+        xoo,
+        reshape
+
