@@ -144,6 +144,8 @@ weightMatrix <- function( weight.matrix="lc",
               nrow(weight.matrix)==years &&
              unique(rowSums(weight.matrix))==1){
         x <- weight.matrix
+        colnames(x) <- c("goi_bonds","corp_bonds","equity")
+        monthly.fees.expenses
     }
     else{
         stop("Please enter a correct value")
@@ -222,56 +224,44 @@ annuity <- function( annuityselect=list("price", "DOP"),
 
 #'  A function to find out the monthly pension payments recieved after inversting in an annuity 
 #' @usage penCalc(age.entry=25,
-#' age.exit=65,
-#'                     wage=list(25000,0.07),
-#'                     cont.rate=0.2,
-#'                     weight.matrix="lc",
-#'                     perc.term=0.2,
-#'                     sel="auto",
-#'                     annuityselect=list("price", 2000),
-#'                     asset.maagement.tax= 0.03)
+#'                age.exit=65,
+#'                wage=list(25000,0.07),
+#'                cont.rate=0.2,
+#'                weight.matrix="lc",
+#'                perc.term=0.2,
+#'                sel="auto",
+#'                annuityselect=list("price", 2000),
+#'                asset.maagement.tax= 0.03)
 #' @title penCalc
 #' @import zoo xtable ggplot2 reshape grid
 #' @param age.entry Numeric entry of the age at which the individual starts working. Default=25
 #' @param age.exit Numeric entry of the age at which the individual stops working. Default=65
-#' @param wage \enumerate{\item If the user enters a character, the program will try to identify this as an attempt select A, B, C or D.
-##\item If the user enters a single number or a vector, the program will automatically identify
-#'  this as an entry of the personal wage.
-#'  \item If the user enters a vector, the program will identify it as an
-#'  attempt by the user to the enter the complete the wage matrix. 
-#'  \item If the user selects either of the wage options or single number
-#'    into the personal wage category, they will have to enter the real
-#'    wage growth rate. }
-#' @param cont.rate This argument of the function will tell us the percentage of wage kept
-#' aside to invest in a pension scheme.
-#' \enumerate{\item single value: If a single value is entered, then program will
-#'   assume that the user wants only a single value to be replicated from
-#'   Age at entry till Age at exit. 
-#' 
-#' \item vector: If a vector is entered, the user will enter a vector of
-#'   length  (Age at entry - Age at exit). 
-#' }
-#' @param weight.matrix Select an option from the list below
-#' \enumerate{ \item lc: Deepak Parekh Report
-#'     \item Vector of 3 numerics ( Government, Equity, Corporate)
-#'     \item Data frame of 3 columns and the number of rows equal to the age at entry - age at exit. }
-#' @param perc.term Percentage of the terminal value to be invested in buying an annuity. 
-#' @param sel The following two arguments have been provided
-#'     \enumerate{ \item Character vector "auto": This argument uses the inhouse data of nifty, government and coprotate bonds to generate hypothetical returns
-#'         \item A data frame of 3 columns and 2 rows}
-#' @param annuityselect A list of to select annuity price or annuity factor and the value
+#' @param wage The parameter accepts the following arguments \enumerate{ \item  \bold{wage at entry with growth rate}: A list of two elements. The first element is the age at entry and the second element is the annual wage growth rate. eg. list(35000, 0.07)
+#'\item \bold{Complete wage}: Enter the complete the wage structure in a vector. Please make sure that the number of entries in the wage structure is equal to (age.exit-age.entry) +1.}
+#' @param cont.rate This argument of the function will tell us the percentage of wage kept aside to invest in a pool of government and corporate bonds and equity. This parameter can accept the follwing arguments:
+#' \enumerate{\item Single contribution rate: Numeric value less than 1.This value will be replicated for each salaried year. 
+#' \item Contribution vector: Enter a vector of contribution rates.}
+#' @param weight.matrix This argument provides the percentage of the contributed salary to invest in a pool of government and corporate bonds and equity. This arguments can accept the follwing options:
+#' \enumerate{\item Lifecycle: : "lc" generates the weights on the basis of lifecycle function mentioned in the Deepak Parekh Report. 
+#' \item Single Wieghts: To provide static weights please provide a ector of 3 numerics in the follwing order Government, Equity and corporate
+#' \item Dynamic Weights: Provide a data frame of 3 columns and the number of rows equal to the (age at entry - age at exit)+1. The columns of the data frame should be in the following order- Government bonds, Corporate bonds, Equity}
+#' @param perc.term Percentage of the terminal value to be invested in buying an annuity.
+#' @param sel Argument to generate the hypothetical returns on investment. The following two options have been provided:
+#'     \enumerate{ \item Character vector "auto": This argument uses the inhouse data of nifty, government and coprotate bonds to generate the hypothetical returns. 
+#'         \item A data frame of 3 columns and 2 rows. The rows should highlight the mean and standard deviations and columns should represent the investment instrumnent.}
+#' @param annuityselect Type (price or factor) and price/factor. Enter the type of annuity as the first element of the list and enter the price/factor of the annuity as the second element of the list. 
 #' @param asset.maagement.tax Numeric percent of the tax to be paid when buying an annuity 
-#' @return Graph
+#' @return Distribution of monthly pension, terminal value and the replacement rate
 #' @examples  penCalc(age.entry=25,
-#'                   age.exit=65,
-#'           wage=list(25000,0.07),
-#'           cont.rate=0.2,
-#'           weight.matrix="lc",
-#'           perc.term=0.2,
-#'           sel="auto",
-#'           annuityselect=list("price", 2000),
-#'           asset.maagement.tax= 0.03)
-#' @author t325
+#'            age.exit=65,
+#'                   wage=list(25000,0.07),
+#'                   cont.rate=0.2,
+#'                   weight.matrix="lc",
+#'                   perc.term=0.2,
+#'                   sel="auto",
+#'                   annuityselect=list("price", 2000),
+#'                   asset.maagement.tax= 0.03)
+#' @author Renuka Sane, Arjun Gupta
 #' @export penCalc
 penCalc <- function(age.entry=25,
                     age.exit=65,
