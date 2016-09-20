@@ -1,3 +1,7 @@
+## library(xtable)
+## library(ggplot2)
+## library(reshape)
+## library(zoo)
 
 annual2mthly <- function(x,y) {100*(((1+x/100)^(1/y))-1)}
 
@@ -147,8 +151,10 @@ weightMatrix <- function( weight.matrix="lc",
     return(x)
 }
 
+#load("../data/niftytbill.rda")
+
 ## Nominal 
-returnMatrix <- function(sel="auto",wages){
+returnMatrix <- function(sel="auto",wages,weights){
     if(class(sel)=="character"){
         if( sel== "auto"){
             data(niftytbill)
@@ -255,10 +261,8 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #'         \item A data frame of 3 columns and 2 rows}
 #' @param annuityselect A list of to select annuity price or annuity factor and the value
 #' @param asset.maagement.tax Numeric percent of the tax to be paid when buying an annuity 
-#'    @return Graph 
-#'    @author t325
-#'    @export penCalc
-#'    @examples  penCalc(age.entry=25,
+#' @return Graph
+#' @examples  penCalc(age.entry=25,
 #'                   age.exit=65,
 #'           wage=list(25000,0.07),
 #'           cont.rate=0.2,
@@ -267,6 +271,8 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #'           sel="auto",
 #'           annuityselect=list("price", 2000),
 #'           asset.maagement.tax= 0.03)
+#' @author t325
+#' @export penCalc
 penCalc <- function(age.entry=25,
                     age.exit=65,
                     wage=list(25000,0.07),
@@ -290,7 +296,7 @@ penCalc <- function(age.entry=25,
                             age.entry,
                             age.exit)
     
-    terminal <- replicate(10000, returnMatrix(sel,wages=wages))
+    terminal <- replicate(10000, returnMatrix(sel,wages=wages,weights=weights))
     for.annuity.terminal <- terminal * perc.term
     in.hand.terminal <- terminal - for.annuity.terminal
     pension <- annuity(annuityselect,
@@ -307,7 +313,7 @@ penCalc <- function(age.entry=25,
     
     
     
-    x <- list(plot(multiplot(p1,p2,p3)))
+    x <- multiplot(p1,p2,p3)
     return(x)
 }
 
