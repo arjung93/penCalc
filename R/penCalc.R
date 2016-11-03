@@ -160,6 +160,7 @@ returnMatrix <- function(sel="auto",wages,weights){
     if(class(sel)=="character"){
         if( sel== "auto"){
             data(niftytbill)
+            real.cbond <- annual2mthly(9.56,12)
             r.equity <- rnorm(nrow(wages),
                               mean=mean(r.equity),
                               sd=sd(r.equity))/100
@@ -167,7 +168,7 @@ returnMatrix <- function(sel="auto",wages,weights){
             real.rf <- rnorm(nrow(wages),
                              mean=mean(real.rf),
                              sd=sd(real.rf))/100
-            
+            real.cbond <- rep(real.cbond, nrow(wages))
                                         # Monthly corporate bond returns
         }
     }
@@ -253,7 +254,7 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #' @param asset.maagement.tax Numeric percent of the tax to be paid when buying an annuity 
 #' @return Distribution of monthly pension, terminal value and the replacement rate
 #' @examples  penCalc(age.entry=25,
-#'            age.exit=65,
+#'                    age.exit=65,
 #'                   wage=list(25000,0.07),
 #'                   cont.rate=0.2,
 #'                   weight.matrix="lc",
