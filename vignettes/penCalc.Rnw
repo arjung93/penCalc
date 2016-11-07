@@ -1,0 +1,134 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{a4wide}
+\usepackage[colorlinks,linkcolor=blue,citecolor=red]{hyperref}
+\usepackage{natbib}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\title{Introduction to the \textbf{penCalc} package in R}
+\author{Arjun Gupta, Renuka Sane \\
+National Institute of Public Finance and Policy}
+% \VignetteIndexEntry{Examples of penCalc package}
+% \VignetteDepends{}  
+% \VignetteKeywords{fmatch}  
+% \VignettePackage{penCalc}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+\begin{itemize}
+  
+\item  Basic demonstration of the function with Default Values
+  
+<<ex1,fig=TRUE >>=
+library(penCalc)
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=0.2,
+        weight.matrix="lc",
+        monthly.fees.expenses=0.04,     
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+\item  Function with wage matrix instead of the default Value
+<<ex2>>=
+penCalc(age.entry=35,
+        age.exit=65,
+        wage=rep(25000, 31),
+        cont.rate=0.2,
+        weight.matrix="lc",
+        monthly.fees.expenses=0.03,
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+\item Function with a contribution rate vector instead of a single value
+<<ex3>>=
+
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=rep(0.2,41),
+        weight.matrix="lc",
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+
+\item Function with three static weights of Government Bond, Corporate Bonds and Nifty returns 
+<<ex4>>=
+
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=0.2,
+        weight.matrix= c(0.3, 0.5, 0.2),
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+
+\item Function with a data frame containing different weights for each
+  year. The columns of the data frame should be in the following
+  order- Government bonds, Corporate bonds and Equity with column
+  names goi\_bonds,  corp\_bonds, equity
+  
+<<ex5>>=
+weightmatrix <- data.frame(goi_bonds=rep(0.2, 41), corp_bonds=rep(0.3,41), equity=rep(0.5,41))
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=0.2,
+        weight.matrix=weightmatrix,
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+
+\item Function with mean and sd of Government bonds, Corporate bonds and Equity provided by the user instead of the default value 
+  
+<<ex6>>=
+returns <- data.frame(mean=c(0.005, 0.006, 0.003), sd=c(0.010, 0.020, 0.030))
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=0.2,
+        weight.matrix="lc",
+        monthly.fees.expenses=0.04,     
+        perc.term=0.2,
+        sel=returns,
+        annuityselect=list("price", 2000),
+        asset.management.tax= 0.03)
+@ 
+
+\item Function using an annuity factor
+  
+<<ex7>>=
+penCalc(age.entry=25,
+        age.exit=65,
+        wage=list(25000,0.07),
+        cont.rate=0.2,
+        weight.matrix="lc",
+        monthly.fees.expenses=0.04,     
+        perc.term=0.2,
+        sel="auto",
+        annuityselect=list("factor", 13.4),
+        asset.management.tax= 0.03)
+@ 
+\end{itemize}
+
+\end{document}
+
+
+
+

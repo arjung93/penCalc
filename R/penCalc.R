@@ -68,7 +68,7 @@ WageMatrix <- function(age.entry=25,
         }
     }
     if(is.vector(wage) && length(wage)== years){
-        w <- data.frame(w=wage[[1]])
+        w <- data.frame(w=wage)
         rownames(w) <- age.entry:age.exit
     }
     if(length(wage[[1]])< years && length(wage[[1]])>2) {
@@ -80,7 +80,7 @@ WageMatrix <- function(age.entry=25,
     return(final.wage)
 }
 
-## To check:Debuggig 
+
 contMatrix <- function(age.entry=25,
                        age.exit=65,
                        cont.rate=0.2){
@@ -135,17 +135,21 @@ weightMatrix <- function( weight.matrix="lc",
               length(weight.matrix)==3 &&
               sum(weight.matrix)==1){
         x <- matrix( rep( weight.matrix, years), ncol= 3, byrow=TRUE)
+        colnames(x) <- c("goi_bonds", "corp_bonds", "equity")
         x <- data.frame( age= age.entry:age.exit, x)
         x$count <- 12
         rownames(x) <- age.entry:age.exit
         x<- untable(df=x[,1:4], num=x[,5])
+
     }else if( is.data.frame(weight.matrix) &&
               ncol(weight.matrix)==3 &&
               nrow(weight.matrix)==years &&
              unique(rowSums(weight.matrix))==1){
         x <- weight.matrix
-        colnames(x) <- c("goi_bonds","corp_bonds","equity")
-        monthly.fees.expenses
+        rownames(x) <- age.entry:age.exit
+        x <- data.frame(age=rownames(x), x)
+        x$count <- 12
+        x<- untable(df=x[,1:4], num=x[,5])
     }
     else{
         stop("Please enter a correct value")
@@ -155,12 +159,12 @@ weightMatrix <- function( weight.matrix="lc",
 
 #load("../data/niftytbill.rda")
 
-## Nominal 
-returnMatrix <- function(sel="auto",wages,weights){
+## Nominal
+returnMatrix <- function(sel="auto",wages, monthly.fees.expenses=0.02,weights){
     if(class(sel)=="character"){
         if( sel== "auto"){
             data(niftytbill)
-            real.cbond <- annual2mthly(9.56,12)
+            real.cbond <- annual2mthly(9.56,12)/100
             r.equity <- rnorm(nrow(wages),
                               mean=mean(r.equity),
                               sd=sd(r.equity))/100
@@ -173,21 +177,22 @@ returnMatrix <- function(sel="auto",wages,weights){
         }
     }
     if(class(sel)=="data.frame"){
-        if( ncol(sel)==3 && nrow(sel)==2){
+        if(ncol(sel)==2 && nrow(sel)==3){
             r.equity <- rnorm(nrow(wages),
                               mean=sel[1,1],
-                              sd=sel[1,2])/100
+                              sd=sel[1,2])
                                         # Monthly tbill returns
-            real.rf <- rnorm(nrow(sel[2,1]),
-                             mean=meansel[2,2],
-                             sd=sd(real.rf))/100
+            real.rf <- rnorm(nrow(wages),
+                             mean=sel[2,1],
+                             sd=sd(sel[2,2]))
             
                                         # Monthly corporate bond returns
-            real.cbond <- rnorm(nrow(sel[3,1]),
-                                mean=meansel[3,2],
-                                sd=sd(real.rf))/100
-        }
-    }
+            real.cbond <- rnorm(nrow(wages),
+                                mean=sel[3,1],
+                                sd=sd(sel[3,2]))
+        }}
+        
+        
     r.portfolio <- cbind(real.rf,
                          real.cbond,
                          r.equity)
@@ -205,9 +210,9 @@ returnMatrix <- function(sel="auto",wages,weights){
 
                                         # To check: Names 
 annuity <- function( annuityselect=list("price", "DOP"),
-                    asset.maagement.tax= 0.03,
+                    asset.management.tax= 0.03,
                     for.annuity.terminal){
-    annuity.terminal.minus.tax <- for.annuity.terminal - (asset.maagement.tax * for.annuity.terminal)
+    annuity.terminal.minus.tax <- for.annuity.terminal - (asset.management.tax * for.annuity.terminal)
     if(annuityselect[[1]]=="price" &&
        is.numeric(annuityselect[[2]])){
         x <- annuityselect[[2]]
@@ -229,10 +234,11 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #'                wage=list(25000,0.07),
 #'                cont.rate=0.2,
 #'                weight.matrix="lc",
+#'                monthly.fees.expenses=0.03,
 #'                perc.term=0.2,
 #'                sel="auto",
 #'                annuityselect=list("price", 2000),
-#'                asset.maagement.tax= 0.03)
+#'                asset.management.tax= 0.03)
 #' @title penCalc
 #' @import zoo xtable ggplot2 reshape grid
 #' @param age.entry Numeric entry of the age at which the individual starts working. Default=25
@@ -246,22 +252,24 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #' \enumerate{\item Lifecycle: : "lc" generates the weights on the basis of lifecycle function mentioned in the Deepak Parekh Report. 
 #' \item Single Wieghts: To provide static weights please provide a ector of 3 numerics in the follwing order Government, Equity and corporate
 #' \item Dynamic Weights: Provide a data frame of 3 columns and the number of rows equal to the (age at entry - age at exit)+1. The columns of the data frame should be in the following order- Government bonds, Corporate bonds, Equity}
+#' @param monthly.fees.expenses Monthly fees expenses
 #' @param perc.term Percentage of the terminal value to be invested in buying an annuity.
 #' @param sel Argument to generate the hypothetical returns on investment. The following two options have been provided:
 #'     \enumerate{ \item Character vector "auto": This argument uses the inhouse data of nifty, government and coprotate bonds to generate the hypothetical returns. 
 #'         \item A data frame of 3 columns and 2 rows. The rows should highlight the mean and standard deviations and columns should represent the investment instrumnent.}
 #' @param annuityselect Type (price or factor) and price/factor. Enter the type of annuity as the first element of the list and enter the price/factor of the annuity as the second element of the list. 
-#' @param asset.maagement.tax Numeric percent of the tax to be paid when buying an annuity 
+#' @param asset.management.tax Numeric percent of the tax to be paid when buying an annuity 
 #' @return Distribution of monthly pension, terminal value and the replacement rate
 #' @examples  penCalc(age.entry=25,
 #'                    age.exit=65,
 #'                   wage=list(25000,0.07),
 #'                   cont.rate=0.2,
 #'                   weight.matrix="lc",
+#'                    monthly.fees.expenses=0.03,
 #'                   perc.term=0.2,
 #'                   sel="auto",
 #'                   annuityselect=list("price", 2000),
-#'                   asset.maagement.tax= 0.03)
+#'                   asset.management.tax= 0.03)
 #' @author Renuka Sane, Arjun Gupta
 #' @export penCalc
 penCalc <- function(age.entry=25,
@@ -269,15 +277,14 @@ penCalc <- function(age.entry=25,
                     wage=list(25000,0.07),
                     cont.rate=0.2,
                     weight.matrix="lc",
+                    monthly.fees.expenses=0.03,
                     perc.term=0.2,
                     sel="auto",
                     annuityselect=list("price", 2000),
-                    asset.maagement.tax= 0.03){
-    
-    wages <- WageMatrix( age.entry,
+                    asset.management.tax= 0.03){
+    wages <- WageMatrix(age.entry,
                         age.exit,
                         wage)
-    
     wages$contributions <- contMatrix(age.entry,
                                       age.exit,
                                       cont.rate)
@@ -287,11 +294,11 @@ penCalc <- function(age.entry=25,
                             age.entry,
                             age.exit)
     
-    terminal <- replicate(10000, returnMatrix(sel,wages=wages,weights=weights))
+    terminal <- replicate(1000, returnMatrix(sel,wages=wages, monthly.fees.expenses,weights))
     for.annuity.terminal <- terminal * perc.term
     in.hand.terminal <- terminal - for.annuity.terminal
     pension <- annuity(annuityselect,
-                       asset.maagement.tax,
+                       asset.management.tax,
                        for.annuity.terminal)
     lastwage <- tail(wages$w,1)
     replacement <- 100*(pension/lastwage)
@@ -301,10 +308,5 @@ penCalc <- function(age.entry=25,
     p1 <- ggplot(fin.data, aes(x=pension)) + geom_density() 
     p2 <- ggplot(fin.data, aes(x=replacement)) + geom_density()
     p3 <- ggplot(fin.data, aes(x=terminal)) + geom_density()
-    
-    
-    
-    x <- multiplot(p1,p2,p3)
-    return(x)
+    return(multiplot(p1,p2,p3))
 }
-
