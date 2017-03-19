@@ -241,10 +241,25 @@ annuity <- function( annuityselect=list("price", "DOP"),
 #'                asset.management.tax= 0.03)
 #' @title penCalc
 #' @import zoo xtable ggplot2 reshape grid
-#' @param age.entry Numeric entry of the age at which the individual starts working. Default=25
-#' @param age.exit Numeric entry of the age at which the individual stops working. Default=65
-#' @param wage The parameter accepts the following arguments \enumerate{ \item  \bold{wage at entry with growth rate}: A list of two elements. The first element is the age at entry and the second element is the annual wage growth rate. eg. list(35000, 0.07)
-#'\item \bold{Complete wage}: Enter the complete the wage structure in a vector. Please make sure that the number of entries in the wage structure is equal to (age.exit-age.entry) +1.}
+#' 
+#' @param age.entry Numeric entry of the age at which the individual
+#'     starts working. Default=25. Cannot be greater than 18.
+#'
+#' 
+#' @param age.exit Numeric entry of the age at which the individual
+#'     stops working. Default=65
+#' 
+#' @param wage The parameter accepts the following arguments
+#'     \enumerate{ \item \bold{wage at entry with growth rate}: A list
+#'     of two elements. The first element is the age at entry and the
+#'     second element is the annual wage growth rate. eg. list(35000,
+#'     0.07)
+#' 
+#'\item \bold{Complete wage}: Enter the complete the wage structure in
+#' a vector. Please make sure that the number of entries in the wage
+#' structure is equal to (age.exit-age.entry) +1.}
+#'
+#' 
 #' @param cont.rate This argument of the function will tell us the percentage of wage kept aside to invest in a pool of government and corporate bonds and equity. This parameter can accept the follwing arguments:
 #' \enumerate{\item Single contribution rate: Numeric value less than 1.This value will be replicated for each salaried year. 
 #' \item Contribution vector: Enter a vector of contribution rates.}
