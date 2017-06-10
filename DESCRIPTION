@@ -4,11 +4,14 @@ Date: 2016-06-13
 Type: Package
 Title: A package to calcaulate the monthly pension recieved by a person
 Authors@R: c(person("Renuka", "Sane", email = "renukas@gmail.com", role = c("aut","cre")))
-Author: Renuka Sane [aut, cre]
+Author: Renuka Sane <renukas@gmail.com>, Arjun Gupta <arjung93@gmail.com>
 Maintainer: Arjun Gupta <arjun.gupta@nipfp.org.in>
 Depends:
     R (>= 3.2.5)
 Imports: ggplot2,xtable,zoo,reshape,grid
-Description: A package to calcaulate the monthly pension recieved by a person after investing a portion of his wealth into an annuity. This package will estimate the income earned by the pensionee over his lifetime by investing a portion of it into bonds, equity etc. This package will estimate the the total income and monthly income  by an individual. 
+Description: A package to calcaulate the monthly pension recieved by a person after estimating the income earned by the pensionee over his lifetime by investing a portion of it into bonds, equity etc. 
 License: GPL (>= 2)
 RoxygenNote: 5.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

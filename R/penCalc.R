@@ -2,6 +2,7 @@
 ## library(ggplot2)
 ## library(reshape)
 ## library(zoo)
+## options(scipen=22)
 
 annual2mthly <- function(x,y) {100*(((1+x/100)^(1/y))-1)}
 
@@ -14,11 +15,9 @@ percentChange <- function(series){
 ## Creating monthly returns for equity, nifty and corp bonds 
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  
-
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
+                                        # Make a list from the ... arguments and plotlist
+    plots <- c(list(...), plotlist)
+    
   numPlots = length(plots)
 
   # If layout is NULL, then use 'cols' to determine layout
@@ -45,64 +44,55 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
                                       layout.pos.col = matchidx$col))
-    }
+     }
   }
 }
 
 
 
-# To check : Names and debugging 
-WageMatrix <- function(age.entry=25,
-                       age.exit=65,
-                       wage=list(25000,0.07)){
-    years <- (age.exit - age.entry) + 1
-    
-    if(length(wage)== 2){
-        if(is.numeric(wage[[1]]) && length(wage[[1]])==1){
-            w <- matrix(NA, years,1)
-            rownames(w) <- age.entry:age.exit
-            w[1,] <- wage[[1]]
-            for(i in 2:length(w)){
-                w[i,] <- w[i-1,] + wage[[2]]*w[i-1,]
-            }
-        }
+
+
+# WageMatrix
+wagematrix <- function(age=list(age.entry=25,age.exit=60),
+                       wage=list(25000,0.05,0.2,initial.amount=0)){
+                                        # Age
+    if( age[[1]] >=18 &&
+        age[[2]] > age[[1]]){
+        years <- age[[1]]:age[[2]]
+        nyears <- age[[2]]-age[[1]] +1
+    } else { stop("Please enter a list of two elements :age of entry and age of exit")}
+                                        # Wage
+    if(length(wage[[1]])==1){
+        w <- matrix(NA, nyears, 1)
+        rownames(w) <- years
+        w[1,1] <- wage[[1]]
+    } else if ( length(wage[[1]])==nyears ) {
+        w <- matrix(NA, nyears,1)
+        rownames(w) <- years
+        w[,1] <- wage[[1]]
+    } else { stop("Please enter a single value of the starting wage or a vector of wages for each year working year")
     }
-    if(is.vector(wage) && length(wage)== years){
-        w <- data.frame(w=wage)
-        rownames(w) <- age.entry:age.exit
+    w <- data.frame(w)
+    # Wage Growth Rate
+    if(length(wage[[2]]) ==1 && wage[[2]] <= 1){
+        w$growth.rate <- wage[[2]]
+        w$growth.rate[1] <- 0
+    } else if ( length(wage[[2]])==nyears-1 ) {
+        w$growth.rate <- c(0,wage[[2]])
+    } else { stop("Please enter a single constant growth rate or a vector for each working year")
     }
-    if(length(wage[[1]])< years && length(wage[[1]])>2) {
-        stop("Please enter a single wage entry with a growth rate or enter the complete wage matrix")
+                                        # Contribution Rate
+    if( length(wage[[3]])==1 ){
+        w$contribution.rate <- wage[[3]]
+    } else if ( length(wage[[3]]) == nyears ){
+        w$contribution.rate <- wage[[3]]
+    } else { stop("Please enter a single constant contribution rate or a vector of contributions for each working year")
     }
-    w <- data.frame(age=rownames(w), w)
-    w$count <- 12
-    final.wage <- untable(df= w[,1:2], num=w[,3])
-    return(final.wage)
+    return(w)
 }
 
-
-contMatrix <- function(age.entry=25,
-                       age.exit=65,
-                       cont.rate=0.2){
-    years <- (age.exit - age.entry) + 1
-    if( length(cont.rate)==1){
-        contribution <- rep(cont.rate, years*12)
-    }
-    if( length(cont.rate)== years){
-        contribution <- data.frame(age=age.entry:age.exit,cont.rate)
-        rownames(contribution) <- age.entry:age.exit
-        contribution$count <- 12
-        contirbution <- untable(df=contribution[,1:2], num=contribution[,3])
-        contribution <- contribution[,2]
-    }
-    if( length(cont.rate>years) && ( length(cont.rate)<years && length(cont.rate)>1)){
-        stop("Enter the correct cont.rate")
-    }
-    return(contribution) 
-}
-
-## To check: We get negative values
-invprofile <- function(age.entry, age.exit){
+# Investment Profile
+invprofile <- function(age.entry, age.exit,w1,w2,w3){
     agemat <- matrix(NA, (age.exit-age.entry)+1, 3)
     rownames(agemat) <- age.entry:age.exit
     first <- matrix(c(10, 25, 65), 1,3)
@@ -110,218 +100,241 @@ invprofile <- function(age.entry, age.exit){
     agemat[1:11,2] <- first[1,2]
     agemat[1:11,3] <- first[1,3]
     for(i in 12:nrow(agemat)){
-        agemat[i,1] <- agemat[i-1,1] + 2.8
-        agemat[i,2] <- agemat[i-1,2] - 0.6
-        agemat[i,3] <- agemat[i-1,3] - 2.2
-        
+        agemat[i,1] <- agemat[i-1,1] + w1
+        agemat[i,2] <- agemat[i-1,2] - w2
+        agemat[i,3] <- agemat[i-1,3] - w3
     }
+    agemat <- as.data.frame(agemat)   
+    agemat[rownames(agemat)>64,] <- data.frame(100,0,0)
     colnames(agemat) <- c("goi_bonds", "corp_bonds", "equity")
     agemat <- agemat/100
     return(agemat)
 }
 
 
-weightMatrix <- function( weight.matrix="lc",
-                         age.entry=25,
-                         age.exit=65){
-    years <- (age.exit - age.entry) + 1
-    if(class(weight.matrix)=="character" && weight.matrix=="lc"){
-        x <- invprofile(age.entry, age.exit)
-        x <- data.frame(age=rownames(x), x)
-        x$count <- 12
-        x<- untable(df=x[,1:4], num=x[,5])
-    } else if( is.numeric(weight.matrix) &&
-              is.vector(weight.matrix) &&
-              length(weight.matrix)==3 &&
-              sum(weight.matrix)==1){
-        x <- matrix( rep( weight.matrix, years), ncol= 3, byrow=TRUE)
-        colnames(x) <- c("goi_bonds", "corp_bonds", "equity")
-        x <- data.frame( age= age.entry:age.exit, x)
-        x$count <- 12
-        rownames(x) <- age.entry:age.exit
-        x<- untable(df=x[,1:4], num=x[,5])
-
-    }else if( is.data.frame(weight.matrix) &&
-              ncol(weight.matrix)==3 &&
-              nrow(weight.matrix)==years &&
-             unique(rowSums(weight.matrix))==1){
-        x <- weight.matrix
-        rownames(x) <- age.entry:age.exit
-        x <- data.frame(age=rownames(x), x)
-        x$count <- 12
-        x<- untable(df=x[,1:4], num=x[,5])
+# Investment Matrix 
+inv_weights <- function(inv.weights=list("lc"),w){
+    if(inv.weights[[1]]=="lc" && length(inv.weights[[1]])==1){
+        weights <- invprofile(as.numeric(rownames(w)[1]),
+                              as.numeric(rownames(w)[length(rownames(w))]),
+                              2.8,0.6,2.2)
+        w <- cbind(w, weights)
+    } else if(ncol(inv.weights[[1]])==3 &&
+              nrow(inv.weights[[1]])==nrow(w) &&
+              unique(rowSums(inv.weights[[1]]))==1){
+        colnames(inv.weights[[1]]) <- c("goi_bonds", "corp_bonds", "equity")
+        w <- cbind(w, inv.weights[[1]])
+    } else { stop("Please enter \"lc\" or a matrix of investment weights with each column providing weights for government bonds, corporate bonds and equity respectively for each working year")
     }
-    else{
-        stop("Please enter a correct value")
-    }
-    return(x)
+    return(w)
 }
 
-#load("../data/niftytbill.rda")
 
-## Nominal
-returnMatrix <- function(sel="auto",wages, monthly.fees.expenses=0.02,weights){
-    if(class(sel)=="character"){
-        if( sel== "auto"){
-            data(niftytbill)
-            real.cbond <- annual2mthly(9.56,12)/100
-            r.equity <- rnorm(nrow(wages),
-                              mean=mean(r.equity),
-                              sd=sd(r.equity))/100
-                                        # Monthly tbill returns
-            real.rf <- rnorm(nrow(wages),
-                             mean=mean(real.rf),
-                             sd=sd(real.rf))/100
-            real.cbond <- rep(real.cbond, nrow(wages))
-                                        # Monthly corporate bond returns
+# Inflation
+inflation_func<- function(inflation,w){
+    if(is.vector(inflation[[1]]) && length(inflation[[1]])==2){
+        w$inf <- rnorm(nrow(w),
+                       mean=inflation[[1]][1],
+                       sd=inflation[[1]][2])
+        w$inf[1] <- 0
+    } else { stop("The first element of the list should be a vector providing the annual mean and standard deviation of inflation in the stated order")
+    }    
+    if( inflation[[2]] ==TRUE){
+        w$realgrowth.rate <- w$growth.rate - w$inf
+    } else if ( inflation[[2]]==FALSE) {
+        w$realgrowth.rate <- w$growth.rate
+    } else { stop("Please enter a logical argument:  TRUE/FALSE")
+    }
+    return(w)
+}
+
+# Function to generate complete wage matrix
+
+wage_comp <- function(age,
+                      wage,
+                      inv.weights,
+                      w){
+    w$comp.wage <- NA
+    w$comp.wage[1] <- w[1,1]
+    nyears <- age[[2]]-age[[1]] +1
+    if(length(wage[[1]])==1){
+        for(i in 2:nrow(w)){
+            w[i,"comp.wage"] <- w[i-1,"comp.wage"] + w[i,"realgrowth.rate"]*w[i-1,"comp.wage"]
         }
+    } else if(length(wage[[1]])==nyears){
+        w$comp.wage <- w$w
     }
-    if(class(sel)=="data.frame"){
-        if(ncol(sel)==2 && nrow(sel)==3){
-            r.equity <- rnorm(nrow(wages),
-                              mean=sel[1,1],
-                              sd=sel[1,2])
-                                        # Monthly tbill returns
-            real.rf <- rnorm(nrow(wages),
-                             mean=sel[2,1],
-                             sd=sd(sel[2,2]))
-            
+    w$contr <- w$comp.wage * w$contribution.rate
+    w$contr[1] <- w$contr[1]+ wage[[4]]
+    w <- inv_weights(inv.weights,w)
+    w$count <- 12
+    w <- untable(df=w[,1:10], num=w[,11])
+    return(w)
+}
+
+# Returns Generator
+
+returns_gen <- function(returns, w){
+    if(class(returns[[1]])=="data.frame" && nrow(returns[[1]])==3 && ncol(returns[[1]])==2){
+                                                # Monthly tbill returns
+            r.rf <- rnorm(nrow(w),
+                          mean=annual2mthly(returns[[1]][1,1],12),
+                          sd=annual2mthly(returns[[1]][1,2],12))
                                         # Monthly corporate bond returns
-            real.cbond <- rnorm(nrow(wages),
-                                mean=sel[3,1],
-                                sd=sd(sel[3,2]))
-        }}
-        
-        
-    r.portfolio <- cbind(real.rf,
-                         real.cbond,
+            r.cbond <- rnorm(nrow(w),
+                             mean=annual2mthly(returns[[1]][2,1],12),
+                             sd=annual2mthly(returns[[1]][2,2], 12))
+                                        # Monthly equity returns
+            r.equity <- rnorm(nrow(w),
+                              mean=annual2mthly(returns[[1]][3,1],12),
+                              sd=annual2mthly(returns[[1]][3,2],12))
+        } else{ stop("Please enter a data frame with two columns: mean and standard deviation and three rows: Government bonds, Corporate bonds and equity respectively") }
+        r.portfolio <- cbind(r.rf,
+                         r.cbond,
                          r.equity)
-    wages$returns <- rowSums( cbind(weights$goi_bonds * r.portfolio[,"real.rf"],
-                                    weights$corp_bonds * r.portfolio[,"real.cbond"],
-                                    weights$equity * r.portfolio[,"r.equity"])) -
-        monthly.fees.expenses
+        w <- cbind(w, r.portfolio)
+        w$monthly.fees.expenses <- annual2mthly(returns[[2]][1],12)
+        w$returns <- rowSums( cbind(w$goi_bonds * r.portfolio[,"r.rf"],
+                                w$corp_bonds * r.portfolio[,"r.cbond"],
+                                w$equity * r.portfolio[,"r.equity"])) - w$monthly.fees.expenses
+    return(w)
+}
+
+# Function to generate real returns and final portfolio value
+
+returns_inf <- function(inflation, returns, w){
+    if( inflation[[2]] == TRUE){
+        w$monthlyinf <- rnorm(nrow(w),
+                              mean=annual2mthly(inflation[[1]][1],12),
+                              sd=annual2mthly(inflation[[1]][2],12))
+        w$real.returns <- w$returns-w$monthlyinf
+    }
+    if( inflation[[2]] == FALSE){
+        w$monthlyinf <- 0
+        w$real.returns <- w$returns
+    }
+    w$annual.fees <- c(rep(0,11), returns[[2]][2])
     portfolio <- 0
-    for (i in 1:nrow(wages)){
-        portfolio <- wages$contwages[i] +
-            (1+wages$returns[i]/100)*portfolio 
+    w$contr[1] <- w$contr[1] 
+    for(i in 1:nrow(w)){
+        portfolio <- w$contr[i] +
+            ((1+w$real.returns[i])*portfolio) - w$annual.fees[i]
+                w$portfolio[i] <- portfolio
     }
-    return(portfolio)
+    return(list(portfolio,w))
 }
 
-                                        # To check: Names 
-annuity <- function( annuityselect=list("price", "DOP"),
-                    asset.management.tax= 0.03,
-                    for.annuity.terminal){
-    annuity.terminal.minus.tax <- for.annuity.terminal - (asset.management.tax * for.annuity.terminal)
-    if(annuityselect[[1]]=="price" &&
-       is.numeric(annuityselect[[2]])){
-        x <- annuityselect[[2]]
-        pension <- (365/12)*annuity.terminal.minus.tax/x
-    }else if(annuityselect[[1]]=="factor" &&
-       is.numeric(annuityselect[[2]])){
-        x <- annuityselect[[2]]
-        pension <- (annuity.terminal.minus.tax/x)/12 
-    }
-    else{
-        stop("Please enter the annuity choice and the value in a list")
-    }
-    return(pension)
+# Returns wrapper function
+returns_func <- function(returns, inflation,w){
+    w <- returns_gen(returns, w)
+    w <- returns_inf(inflation, returns,w)
+    return(w)
 }
 
-#'  A function to find out the monthly pension payments recieved after inversting in an annuity 
-#' @usage penCalc(age.entry=25,
-#'                age.exit=65,
-#'                wage=list(25000,0.07),
-#'                cont.rate=0.2,
-#'                weight.matrix="lc",
-#'                monthly.fees.expenses=0.03,
-#'                perc.term=0.2,
-#'                sel="auto",
-#'                annuityselect=list("price", 2000),
-#'                asset.management.tax= 0.03)
-#' @title penCalc
-#' @import zoo xtable ggplot2 reshape grid
-#' 
-#' @param age.entry Numeric entry of the age at which the individual
-#'     starts working. Default=25. Cannot be greater than 18.
-#'
-#' 
-#' @param age.exit Numeric entry of the age at which the individual
-#'     stops working. Default=65
-#' 
-#' @param wage The parameter accepts the following arguments
-#'     \enumerate{ \item \bold{wage at entry with growth rate}: A list
-#'     of two elements. The first element is the age at entry and the
-#'     second element is the annual wage growth rate. eg. list(35000,
-#'     0.07)
-#' 
-#'\item \bold{Complete wage}: Enter the complete the wage structure in
-#' a vector. Please make sure that the number of entries in the wage
-#' structure is equal to (age.exit-age.entry) +1.}
-#'
-#' 
-#' @param cont.rate This argument of the function will tell us the percentage of wage kept aside to invest in a pool of government and corporate bonds and equity. This parameter can accept the follwing arguments:
-#' \enumerate{\item Single contribution rate: Numeric value less than 1.This value will be replicated for each salaried year. 
-#' \item Contribution vector: Enter a vector of contribution rates.}
-#' @param weight.matrix This argument provides the percentage of the contributed salary to invest in a pool of government and corporate bonds and equity. This arguments can accept the follwing options:
-#' \enumerate{\item Lifecycle: : "lc" generates the weights on the basis of lifecycle function mentioned in the Deepak Parekh Report. 
-#' \item Single Wieghts: To provide static weights please provide a ector of 3 numerics in the follwing order Government, Equity and corporate
-#' \item Dynamic Weights: Provide a data frame of 3 columns and the number of rows equal to the (age at entry - age at exit)+1. The columns of the data frame should be in the following order- Government bonds, Corporate bonds, Equity}
-#' @param monthly.fees.expenses Monthly fees expenses
-#' @param perc.term Percentage of the terminal value to be invested in buying an annuity.
-#' @param sel Argument to generate the hypothetical returns on investment. The following two options have been provided:
-#'     \enumerate{ \item Character vector "auto": This argument uses the inhouse data of nifty, government and coprotate bonds to generate the hypothetical returns. 
-#'         \item A data frame of 3 columns and 2 rows. The rows should highlight the mean and standard deviations and columns should represent the investment instrumnent.}
-#' @param annuityselect Type (price or factor) and price/factor. Enter the type of annuity as the first element of the list and enter the price/factor of the annuity as the second element of the list. 
-#' @param asset.management.tax Numeric percent of the tax to be paid when buying an annuity 
-#' @return Distribution of monthly pension, terminal value and the replacement rate
-#' @examples  penCalc(age.entry=25,
-#'                    age.exit=65,
-#'                   wage=list(25000,0.07),
-#'                   cont.rate=0.2,
-#'                   weight.matrix="lc",
-#'                    monthly.fees.expenses=0.03,
-#'                   perc.term=0.2,
-#'                   sel="auto",
-#'                   annuityselect=list("price", 2000),
-#'                   asset.management.tax= 0.03)
-#' @author Renuka Sane, Arjun Gupta
-#' @export penCalc
-penCalc <- function(age.entry=25,
-                    age.exit=65,
-                    wage=list(25000,0.07),
-                    cont.rate=0.2,
-                    weight.matrix="lc",
-                    monthly.fees.expenses=0.03,
-                    perc.term=0.2,
-                    sel="auto",
-                    annuityselect=list("price", 2000),
-                    asset.management.tax= 0.03){
-    wages <- WageMatrix(age.entry,
-                        age.exit,
-                        wage)
-    wages$contributions <- contMatrix(age.entry,
-                                      age.exit,
-                                      cont.rate)
-    
-    wages$contwages <- wages$w * wages$contributions
-    weights <- weightMatrix(weight.matrix,
-                            age.entry,
-                            age.exit)
-    
-    terminal <- replicate(1000, returnMatrix(sel,wages=wages, monthly.fees.expenses,weights))
-    for.annuity.terminal <- terminal * perc.term
+# Annuity function
+annuity_func<- function( annuity=list(proportion.annuitised=0.40,
+                                      price=4087),
+                        terminal){
+    for.annuity.terminal <- terminal * annuity[[1]]
     in.hand.terminal <- terminal - for.annuity.terminal
-    pension <- annuity(annuityselect,
-                       asset.management.tax,
-                       for.annuity.terminal)
-    lastwage <- tail(wages$w,1)
-    replacement <- 100*(pension/lastwage)
-    fin.data <- data.frame(pension=pension,
+    if(is.numeric(annuity[[1]]) &&
+       is.numeric(annuity[[2]])){
+        x <- annuity[[2]]
+        pension <- (365/12)*(for.annuity.terminal/x)
+    }    else{
+        stop("Please enter the percent to be annuitised and the prices of the annuity as two elements of a list")
+    }
+    annuity <- cbind(pension,in.hand.terminal,for.annuity.terminal)
+    colnames(annuity) <- c("pension","in.hand.terminal","for.annuity.terminal")
+    return(annuity)
+}
+
+#' Function to simulate pension outcomes
+#' @usage pencalc(age=list(age.entry=25
+#'                        ,age.exit=60),
+#'                wage=list(wage=25000
+#'                         ,growth.rate=0.05
+#'                         ,contribution.rate=0.2
+#'                         ,initial.amount=0),
+#'                inflation=list(mean.sd.inflation=c(0.04,0)
+#'                              ,real=FALSE),
+#'                inv.weights=list("lc"),
+#'                returns=list(returns=data.frame(mean=c(0.07, 0.10, 0.16),
+#'                                                sd=c(0, 0, 0.25)),
+#'                             fees=c(monthly.fees.expenses=0.01,100)),
+#'                annuity=list(proportion.annuitised=0.40,
+#'                             price=4087))
+#' @title pencalc
+#' @import zoo xtable ggplot2 reshape grid
+#' @param age List of two elements : \enumerate{ \item age.entry: Age at which a person enter the pension system \item age.exit: Age at which a person exits the pension system }
+#' @param wage List of four elements: \enumerate{ \item wage: There are two choices: \enumerate{ \item Single Wage: A numeric entry of the starting wage \item Wage Vector: A vector of wages for each year a person is in the pension system } \item growth.rate: Annual wage growth. There are two choices:  \enumerate{ \item Constant Growth Rate: A single numeric entry of the wage growth rate  \item Growth Rate Vector: A vector of numeric entries of wage growth rate for each year the person is in the pension system} \item contribution.rate: Percentage of the wage to be invested in a portfolio. There are two available choics \enumerate{ \item Single contribution rate: A single numeric entry which will remain constant throughout  \item Contribution rate vector: A vector of numeric entries for each year the person is in the pension system} \item initial.amount: Numeric entry signifying an amount accumulated before the simulation begins }
+#' @param inflation List of two elements: \enumerate{ \item mean.sd.inflation: A vector with the annual mean and standard deviation of the expected inflation. \item real: Logical symbol(TRUE) to get real prices}
+#' @param inv.weights List of one element. There are two choices: \enumerate{ \item Character "lc" to generate life cycle weights \item A matrix of investment weights with 3 column providing weights for government bonds, corporate bonds and equity respectively} 
+#' @param returns List of two elements: \enumerate{ \item returns: A data frame of mean and standard deviation of government bonds, corporate bonds and equity \item fees: \enumerate{ \item Monthly fees and expenses: Percent of asset under management figure to be deducted from portfolio returns every month. \item Annual flat fee: Flat amonunt to be deducted at the end of each year}}
+#' @param annuity List of two elements: \enumerate{ \item proportion.annuitised: The proportion of accumulations to be annuitised  \item price: The price of the annuity }
+#' @return Mean and standard deviation of pension, terminal price and replacement rate
+#' @examples pencalc(age=list(age.entry=25
+#'                           ,age.exit=60),
+#'                    wage=list(wage=25000
+#'                             ,growth.rate=0.05
+#'                          ,contribution.rate=0.2
+#'                            ,initial.amount=0),
+#'                    inflation=list(mean.sd.inflation=c(0.04,0)
+#'                                  ,real=FALSE),
+#'                    inv.weights=list("lc"),
+#'                    returns=list(returns=data.frame(mean=c(0.07, 0.10, 0.16),
+#'                                            sd=c(0, 0, 0.25)),
+#'                                 fees=c(monthly.fees.expenses=0.01,100)),
+#'                   annuity=list(proportion.annuitised=0.40,
+#'                                price=4087))
+#' @author Renuka Sane, Arjun Gupta
+#' @export pencalc
+pencalc <- function(age=list(age.entry=25
+                            ,age.exit=60),
+                    wage=list(wage=25000
+                             ,growth.rate=0.05
+                             ,contribution.rate=0.2
+                             ,initial.amount=0),
+                    inflation=list(mean.sd.inflation=c(0.04,0)
+                                  ,real=FALSE),
+                    inv.weights=list("lc"),
+                    returns=list(returns=data.frame(mean=c(0.07, 0.10, 0.16),
+                                            sd=c(0, 0, 0.25)),
+                                 fees=c(monthly.fees.expenses=0.01,100)),
+                    annuity=list(proportion.annuitised=0.40,
+                                 price=4087)){
+    w <- wagematrix(age, wage)
+    w <- inflation_func(inflation,w)
+    w <- wage_comp(age,
+                   wage,
+                   inv.weights,
+                   w)
+    terminal <- replicate(1000, returns_func(returns, inflation,w))
+    pension <- annuity_func(annuity, terminal=do.call("rbind",terminal[seq(1, length(terminal), by=2)]))
+    w <- data.frame(terminal[length(terminal)])
+    lastwage <- tail(w$comp.wage,1)
+    replacement <- 100*(pension[,"pension"]/lastwage)
+    fin.data <- data.frame(pension=pension[,"pension"],
                            replacement=replacement,
-                           terminal=terminal)
-    p1 <- ggplot(fin.data, aes(x=pension)) + geom_density() 
-    p2 <- ggplot(fin.data, aes(x=replacement)) + geom_density()
-    p3 <- ggplot(fin.data, aes(x=terminal)) + geom_density()
-    return(multiplot(p1,p2,p3))
+                           in.hand.terminal=pension[,"in.hand.terminal"])
+    fin.values <- data.frame(mean=apply(fin.data,2,mean), sd=apply(fin.data, 2, sd))
+    rownames(fin.values) <- colnames(fin.data)
+    fin <- list(fin.values, w, fin.data)
+    class(fin) <- "penc"
+    return(fin)
+}
+
+
+#' @export print.penc
+print.penc <- function(x){
+    cat("Mean and Standard Deviation","\n")
+    print(x[[1]])
+}
+
+#' @export plot.penc
+plot.penc <- function(x){
+    p1 <- ggplot(data.frame(pension=x[[3]][[1]]), aes(x=pension)) + geom_density() 
+    p2 <- ggplot(data.frame(replacement=x[[3]][[2]]), aes(x=replacement)) + geom_density()
+    p3 <- ggplot(data.frame(in.hand.terminal=x[[3]][[3]]), aes(x=in.hand.terminal)) + geom_density()
+    multiplot(p1,p2,p3)
 }
