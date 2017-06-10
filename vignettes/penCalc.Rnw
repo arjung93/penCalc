@@ -11,9 +11,6 @@
 \usepackage{subfigure}
 \usepackage{parskip}
 \usepackage[tableposition=top]{caption}
-\usepackage[style=authoryear, bibencoding=utf8,  natbib=true,
-backend=biber]{biblatex}  
-\addbibresource{pencalc.bib}
 \usepackage[style=long, nonumberlist, acronym]{glossaries}
 \usepackage{hyperref}
 \usepackage{pdfpages}
@@ -49,7 +46,7 @@ National Institute of Public Finance and Policy}
 % \VignettePackage{penCalc}
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
 
 \maketitle
 
@@ -115,7 +112,7 @@ Rs.25,000 p.m, and is expected to grow at 5\% each year. The
 contribution rate is assumed to be 20\% of the wage. The simulation
 uses the current investment allocation between government bonds and
 equity of 85\% and 15\% respectively. The returns assumptions are as
-described in Section \ref{ss:macro} (7\% for government bonds, 10\%
+described in Section  (7\% for government bonds, 10\%
 for corporate bonds, and 16\% for equity, with a standard deviation of
 25\%). The AUM based fee is assumed to be 0.01\%, while a flat annual
 fee is assumed to be Rs.100. The annuity used is the nominal annuity.
@@ -142,16 +139,81 @@ x <- pencalc(inv.weights=list(weightmatrix))
 
 # 100% annuity
 y <- pencalc(inv.weights=list(weightmatrix),
-             annuity=list(perc.annuitised=1,
-             type="price",   
-             value=4087,
-             service.tax= 0.00))
+             annuity=list(proportion.annuitised=1,
+                          value=4087))
 y
 
 @ 
   
- 
-\end{itemize}
+\subsection{Life-cycle portfolio allocation} \label{ss:lifecycleN}
+
+The current portfolio weights for government employees are heavily
+skewed towards government bonds. Given the huge equity premium in
+India, it is useful for the NPS to invest more heavily in
+equities. The volatility from equity markets may be brought down by
+reducing exposure to equity as the subscriber grows older, by using a
+life-cycle portfolio allocation.
+
+The following example provides a demo of life-cycle portfolio
+allocation. The simulation uses the default life-cycle weights for
+allocation of contributions towards the three asset classes. All other
+assumptions remain the same. As we are using all the default values of
+the function, the R-code requires us to just run the \texttt{pencalc}
+function for the 40\% annuitisation case, and add the 100\%
+annuitisation parameter when required.
+
+<<ex2,fig=TRUE >>=
+set.seed(111)
+# 40% annuity
+x <- pencalc()
+x
+
+# 100% annuity
+y <- pencalc(annuity=list(proportion.annuitised=1,
+             price=4087))
+y
+@ 
+
+\subsection{The role of equity} \label{ss:equityN}
+
+An aggressive scheme of investment that has been considered by the
+Government is where 25 percent of the assets would be held in
+Government paper, 25 percent in investment grade corporate bonds and
+50 percent in equity. We present a simulation using these investment
+guidelines.
+
+
+<<ex3>>=
+
+hyp_returns <- data.frame(mean=c(0.07, 0.10, 0.16), sd=c(0, 0, 0.25))
+weightmatrix <- data.frame(goi_bonds=rep(0.25, 36), corp_bonds=rep(0.25,36),
+                           equity=rep(0.50,36))
+
+set.seed(111)
+# 40% annuity
+x <- pencalc(inv.weights=list(weightmatrix),
+             returns=list(hyp_returns,
+                          c(monthly.fees.expenses=0.01,100)))
+
+@  
+
+\subsection{Real returns} \label{ss:real}
+
+In order to calculate the pension amount and the accumulated balance
+in real terms, we demonstrate the use of the ``real'' parameter in the
+calculator. The R-code is given below. Here, for the 40\%
+annuitisation case, the only parameter that changes is the setting of
+real=TRUE. For the 100\% annuitisation case, we also have to change
+the argument for percentage to be annuitisied.
+<<ex4>>=
+
+# 40% annuity
+y <- pencalc(inflation=list(c(0.07,0)
+                           ,real=TRUE))
+y 
+@ 
+
+
 
 \end{document}
 
