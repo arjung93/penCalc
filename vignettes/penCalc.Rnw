@@ -42,9 +42,8 @@
 National Institute of Public Finance and Policy}
 % \VignetteIndexEntry{Examples of penCalc package}
 % \VignetteDepends{}  
-% \VignetteKeywords{fmatch}  
 % \VignettePackage{penCalc}
-
+%\VignetteEngine{knitr::knitr}
 \begin{document}
 
 
@@ -129,7 +128,7 @@ specification of one more parameter, as the default annuitisation rate
 is 40\%.
 
   
-<<ex1,fig=TRUE >>=
+<<ex1 >>=
 library(penCalc)
 weightmatrix <- data.frame(goi_bonds=rep(0.85, 36), corp_bonds=rep(0,36),
                            equity=rep(0.15,36))
@@ -162,7 +161,7 @@ the function, the R-code requires us to just run the \texttt{pencalc}
 function for the 40\% annuitisation case, and add the 100\%
 annuitisation parameter when required.
 
-<<ex2,fig=TRUE >>=
+<<ex2 >>=
 set.seed(111)
 # 40% annuity
 x <- pencalc()
