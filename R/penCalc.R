@@ -88,6 +88,9 @@ wagematrix <- function(age=list(age.entry=25,age.exit=60),
         w$contribution.rate <- wage[[3]]
     } else { stop("Please enter a single constant contribution rate or a vector of contributions for each working year")
     }
+    if(is.vector(wage[[1]]) && is.vector(wage[[2]])){
+        stop("A wage vector and growth rate vector cannot be used at the same time in the wage argument.xs")
+        }
     return(w)
 }
 
@@ -267,7 +270,7 @@ annuity_func<- function( annuity=list(proportion.annuitised=0.40,
 #' @title pencalc
 #' @import zoo xtable ggplot2 reshape grid
 #' @param age List of two elements : \enumerate{ \item age.entry: Age at which a person enter the pension system \item age.exit: Age at which a person exits the pension system }
-#' @param wage List of four elements: \enumerate{ \item wage: There are two choices: \enumerate{ \item Single Wage: A numeric entry of the starting wage \item Wage Vector: A vector of wages for each year a person is in the pension system } \item growth.rate: Annual wage growth. There are two choices:  \enumerate{ \item Constant Growth Rate: A single numeric entry of the wage growth rate  \item Growth Rate Vector: A vector of numeric entries of wage growth rate for each year the person is in the pension system} \item contribution.rate: Percentage of the wage to be invested in a portfolio. There are two available choics \enumerate{ \item Single contribution rate: A single numeric entry which will remain constant throughout  \item Contribution rate vector: A vector of numeric entries for each year the person is in the pension system} \item initial.amount: Numeric entry signifying an amount accumulated before the simulation begins }
+#' @param wage List of four elements: \enumerate{ \item wage: There are two choices: \enumerate{ \item Single Wage: A numeric entry of the starting wage \item Wage Vector: A vector of wages for each year a person is in the pension system. If a vector is entered, then the values set in growth.rate should be 0..} \item growth.rate: Annual wage growth. There are two choices:  \enumerate{ \item Constant Growth Rate: A single numeric entry of the wage growth rate  \item Growth Rate Vector: A vector of numeric entries of wage growth rate for each year the person is in the pension system} \item contribution.rate: Percentage of the wage to be invested in a portfolio. There are two available choics \enumerate{ \item Single contribution rate: A single numeric entry which will remain constant throughout  \item Contribution rate vector: A vector of numeric entries for each year the person is in the pension system} \item initial.amount: Numeric entry signifying an amount accumulated before the simulation begins }
 #' @param inflation List of two elements: \enumerate{ \item mean.sd.inflation: A vector with the annual mean and standard deviation of the expected inflation. \item real: Logical symbol(TRUE) to get real prices}
 #' @param inv.weights List of one element. There are two choices: \enumerate{ \item Character "lc" to generate life cycle weights \item A matrix of investment weights with 3 column providing weights for government bonds, corporate bonds and equity respectively} 
 #' @param returns List of two elements: \enumerate{ \item returns: A data frame of mean and standard deviation of government bonds, corporate bonds and equity \item fees: \enumerate{ \item Monthly fees and expenses: Percent of asset under management figure to be deducted from portfolio returns every month. \item Annual flat fee: Flat amonunt to be deducted at the end of each year}}
