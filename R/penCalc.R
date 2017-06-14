@@ -88,7 +88,7 @@ wagematrix <- function(age=list(age.entry=25,age.exit=60),
         w$contribution.rate <- wage[[3]]
     } else { stop("Please enter a single constant contribution rate or a vector of contributions for each working year")
     }
-    if(is.vector(wage[[1]]) && is.vector(wage[[2]])){
+    if(length(wage[[1]])>1 && length(wage[[2]])>1){
         stop("A wage vector and growth rate vector cannot be used at the same time in the wage argument.xs")
         }
     return(w)

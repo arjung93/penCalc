@@ -12,6 +12,5 @@ Imports: ggplot2,xtable,zoo,reshape,grid
 Description: A package to calcaulate the monthly pension recieved by a person after estimating the income earned by the pensionee over his lifetime by investing a portion of it into bonds, equity etc. 
 License: GPL (>= 2)
 RoxygenNote: 5.0.1
-Suggests: knitr,
-    rmarkdown
+Suggests: knitr
 VignetteBuilder: knitr
