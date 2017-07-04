@@ -107,7 +107,7 @@ the following outputs
 The following example provides a demo of the baseline case. As
 discussed in the previous section, the age of entry is assumed to be
 25, and age of retirement is 60. The starting wage is assumed to be
-Rs.25,000 p.m, and is expected to grow at 5\% each year. The
+Rs.25,000 p.m, and is expected to grow at 8\% each year. The
 contribution rate is assumed to be 20\% of the wage. The simulation
 uses the current investment allocation between government bonds and
 equity of 85\% and 15\% respectively. The returns assumptions are as
