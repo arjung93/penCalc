@@ -9,12 +9,7 @@ Maintainer: Arjun Gupta <arjung93@gmail.com>
 Depends:
     R (>= 3.2.5)
 Imports: ggplot2,xtable,zoo,reshape,grid
-
-Description: A package to simulate the expected monthly pension at
-retirement. The simulations require assumptions on wages, contribution
-rate, inflation, investment portfolio consisting of government bonds,
-corporate bonds, equities, expected returns on each asset class, and
-annuity prices.
+Description: A package to simulate the expected monthly pension at retirement. The simulations require assumptions on wages, contribution rate, inflation, investment portfolio consisting of government bonds, corporate bonds, equities, expected returns on each asset class, and annuity prices.
 License: GPL (>= 2)
 RoxygenNote: 6.0.1
 Suggests: knitr
