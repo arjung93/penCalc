@@ -49,6 +49,52 @@ National Institute of Public Finance and Policy}
 
 \maketitle
 
+\section{Introduction}
+
+This packages provides a function to simulate pension outcomes from a
+DC pension sytsem. The baseline assumptions used reflect the
+macroeconomic conditions in India, as well as the rules surrounding
+the National Pension System (NPS).\footnote{The NPS is a defined
+  contribution individual account retirement system, that was
+  implemented for all new recruits into central government, starting
+  from 1 January 2004. In this scheme, employees contribute 10\% of
+  their income, and the Government in its role as an employer, matches
+  it with another 10\%. These are then invested in select pension fund
+  managers (PFMs). A 40\% annuitisation rate has been made mandatory,
+  and the remaining 60\% can be withdrawn as lumpsum on
+  retirement. The NPS is also available to citizens of India on a
+  voluntary basis.} The set of assumptions is as follows:
+
+\begin{table}
+  \caption{Assumptions for penCalc} \label{t:assumptions}
+  \begin{center}
+    \begin{tabular}{lr}
+      Age of entry & 25 \\
+      Age of exit & 60 \\
+      Starting wage & Rs.25,000 per month. \\
+      Wage growth (nominal) & 8\% per anum \\
+      Contribution rate & 20\% of wage \\
+      Inflation (mean, sd) & (4\%, 0) \\
+      Investment portfolio & Lifecyle \\
+      Returns (nominal) & \\
+        ~~GOI bonds (mean, sd) & (7\%, 0) \\
+        ~~Corporate bonds (mean, sd) & (10\%, 0) \\
+        ~~Equities (mean, sd) & (16\%, 25\%) \\
+      Fees & 
+       ~~ AUM & 0.01\% \\
+       ~~ Flat fee & Rs.100 p.a. \\        
+     Percent to be annuitised & 40\% \\
+     Annuity price (nominal annuity) & Rs.4,087 \\
+    \end{tabular}
+  \end{center}
+\end{table}
+
+All of these assumptions can be changed. In particular, the user can
+use a vector of wages instead of a single wage and wage growth number
+to reflect the wage trajectory of an informal sector worker. The user
+can also input a vector of contributions, instead of a single
+contribution rate, to reflect inability to contribute regularly.
+
 \subsection{The working on the model} \label{ss:working}
 
 The model proceeds as follows. The starting wage and the yearly growth
@@ -58,27 +104,29 @@ calculated as the difference between age of entry and exit. In this
 particular instance, the number of years is 60-25+1, that is 36 years.
 
 The contribution rate is then used on this vector of wages to arrive
-at the rupee value of contributions each year in the NPS. The wages
-are expected to stay the same in each month of the year. If the user
-has entered the ``real'' option, then the rate of inflation is
-subtracted from the wages to arrive at a vector of contributions in
-real terms.
+at the rupee value of contributions each year in the pension
+system. The wages are expected to stay the same in each month of the
+year. If the user has entered the ``real'' option, then the rate of
+inflation is subtracted from the wages to arrive at a vector of
+contributions in real terms.
 
 The mean and standard deviations of the underlying instruments (bonds
 and equity) are used to simulate returns on the investment each year
 as a draw from a normal distribution. The returns are annualised
 figures, and are converted to monthly returns. The investment weights
-and returns are used to arrive at a portfolio return. The monthly fees
-and expenses are deducted from the portfolio returns. The
-contributions and returns are accumulated over each year in the
-system, and gives us the total expected accumulation in the pension
-account.
+and returns are used to arrive at a portfolio return. A set of
+lifecycle weights determine the composition of the portfolio.
+
+The monthly fees and expenses are deducted from the portfolio
+returns. The contributions and returns are accumulated over each year
+in the system, and gives us the total expected accumulation in the
+pension account.
 
 This simulation is done 1000 times, and thus generates a distribution
-of the expected accumulated amounts in the NPS account. The amount to
-be annuitised is subtracted from this accumulation and used to arrive
-at the monthly expected pension using the annuity price. The model has
-the following outputs
+of the expected accumulated amounts in the pension account. The amount
+to be annuitised is subtracted from this accumulation and used to
+arrive at the monthly expected pension using the annuity price. The
+model has the following outputs.
 
 \begin{description}
   \item [In hand accumulation] This is the average amount of lumpsum
@@ -101,20 +149,14 @@ the following outputs
 
 \section{Examples} \label{s:examples}
 
-\subsection{Baseline portfolio weights: 85\% bonds, 15\% equity}
+\subsection{ Portfolio weights: 85\% bonds, 15\% equity}
 \label{ss:baseline}
 
-The following example provides a demo of the baseline case. As
-discussed in the previous section, the age of entry is assumed to be
-25, and age of retirement is 60. The starting wage is assumed to be
-Rs.25,000 p.m, and is expected to grow at 8\% each year. The
-contribution rate is assumed to be 20\% of the wage. The simulation
-uses the current investment allocation between government bonds and
-equity of 85\% and 15\% respectively. The returns assumptions are as
-described in Section  (7\% for government bonds, 10\%
-for corporate bonds, and 16\% for equity, with a standard deviation of
-25\%). The AUM based fee is assumed to be 0.01\%, while a flat annual
-fee is assumed to be Rs.100. The annuity used is the nominal annuity.
+The following example provides a demo of the broad current portfolio
+composition in the Indian pension scheme. This is an investment
+allocation between government bonds and equity of 85\% and 15\%
+respectively.  The rest of the assumptions are as described in Table
+\ref{t:assumptions}.
 
 The R-code for the 40\% annuitisation example is shown below.  Since
 we are using all the default values and only changing the investment
@@ -145,13 +187,6 @@ y
 @ 
   
 \subsection{Life-cycle portfolio allocation} \label{ss:lifecycleN}
-
-The current portfolio weights for government employees are heavily
-skewed towards government bonds. Given the huge equity premium in
-India, it is useful for the NPS to invest more heavily in
-equities. The volatility from equity markets may be brought down by
-reducing exposure to equity as the subscriber grows older, by using a
-life-cycle portfolio allocation.
 
 The following example provides a demo of life-cycle portfolio
 allocation. The simulation uses the default life-cycle weights for
@@ -221,8 +256,8 @@ that is 20\% for the first five years, increases by 2\% every five
 years, and is 30\% for the last 11 years of working life. The
 remaining assumptions remain the same as that of the life-cycle
 portfolio allocation example described in Section
-\ref{ss:lifecycleN}. The R-code is shown below. We first set the vector
-of contributions in \texttt{cont\_vector}.
+\ref{ss:lifecycleN}. The R-code is shown below. We first set the
+vector of contributions in \texttt{cont\_vector}.
 
 <<ex5>>=
 cont_vector<- c(rep(0.20,5), rep(0.22,5),rep(0.24,5),
