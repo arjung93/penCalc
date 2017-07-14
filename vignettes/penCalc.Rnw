@@ -77,12 +77,12 @@ the National Pension System (NPS).\footnote{The NPS is a defined
       Inflation (mean, sd) & (4\%, 0) \\
       Investment portfolio & Lifecyle \\
       Returns (nominal) & \\
-        ~~GOI bonds (mean, sd) & (7\%, 0) \\
-        ~~Corporate bonds (mean, sd) & (10\%, 0) \\
-        ~~Equities (mean, sd) & (16\%, 25\%) \\
-      Fees & 
-       ~~ AUM & 0.01\% \\
-       ~~ Flat fee & Rs.100 p.a. \\        
+        GOI bonds (mean, sd) & (7\%, 0) \\
+        Corporate bonds (mean, sd) & (10\%, 0) \\
+        Equities (mean, sd) & (16\%, 25\%) \\
+      Fees & 100 \\
+        AUM & 0.01\% \\
+        Flat fee & Rs.100 p.a. \\        
      Percent to be annuitised & 40\% \\
      Annuity price (nominal annuity) & Rs.4,087 \\
     \end{tabular}
@@ -167,23 +167,28 @@ annualised rate of return (for example 0.85 in the case of government
 bonds), and the number of years the calculation is to be done for
 (36). The code for the 100\% annuitisation case will require the
 specification of one more parameter, as the default annuitisation rate
-is 40\%.
+is 40\%. The example shows the use of ``real'' values.
 
   
 <<ex1 >>=
 library(penCalc)
-weightmatrix <- data.frame(goi_bonds=rep(0.85, 36), corp_bonds=rep(0,36),
+options(scipen=22)
+weightmatrix <- data.frame(goi_bonds=rep(0.85, 36), 
+                           corp_bonds=rep(0,36),
                            equity=rep(0.15,36))
 set.seed(111)
 # 40% annuity
-x <- pencalc(inv.weights=list(weightmatrix))
+x <- pencalc(inflation=list(c(0.04, 0),
+                            real=TRUE),
+             inv.weights=list(weightmatrix))
 
 # 100% annuity
-y <- pencalc(inv.weights=list(weightmatrix),
+y <- pencalc(inflation=list(c(0.04, 0),
+                            real=TRUE),
+             inv.weights=list(weightmatrix),
              annuity=list(proportion.annuitised=1,
                           value=4087))
 y
-
 @ 
   
 \subsection{Life-cycle portfolio allocation} \label{ss:lifecycleN}
@@ -194,17 +199,22 @@ allocation of contributions towards the three asset classes. All other
 assumptions remain the same. As we are using all the default values of
 the function, the R-code requires us to just run the \texttt{pencalc}
 function for the 40\% annuitisation case, and add the 100\%
-annuitisation parameter when required.
+annuitisation parameter when required. The code also needs to indicate
+the use of the ``real'' option if calculations are to be done in real
+terms.
 
 <<ex2 >>=
 set.seed(111)
 # 40% annuity
-x <- pencalc()
+x <- pencalc(inflation=list(c(0.04,0)
+                           ,real=TRUE))
 x
 
 # 100% annuity
-y <- pencalc(annuity=list(proportion.annuitised=1,
-             price=4087))
+y <- pencalc(inflation=list(c(0.04,0)
+                           ,real=TRUE),
+             annuity=list(proportion.annuitised=1,
+                          price=4087))
 y
 @ 
 
@@ -219,57 +229,46 @@ guidelines.
 
 <<ex3>>=
 
-hyp_returns <- data.frame(mean=c(0.07, 0.10, 0.16), sd=c(0, 0, 0.25))
-weightmatrix <- data.frame(goi_bonds=rep(0.25, 36), corp_bonds=rep(0.25,36),
+weightmatrix <- data.frame(goi_bonds=rep(0.25, 36), 
+                           corp_bonds=rep(0.25,36),
                            equity=rep(0.50,36))
 
 set.seed(111)
 # 40% annuity
-x <- pencalc(inv.weights=list(weightmatrix),
-             returns=list(hyp_returns,
-                          c(monthly.fees.expenses=0.01,100)))
+x <- pencalc(inflation=list(c(0.04,0)
+                           ,real=TRUE),
+             inv.weights=list(weightmatrix))
 
 @  
 
-\subsection{Real returns} \label{ss:real}
-
-In order to calculate the pension amount and the accumulated balance
-in real terms, we demonstrate the use of the ``real'' parameter in the
-calculator. The R-code is given below. Here, for the 40\%
-annuitisation case, the only parameter that changes is the setting of
-real=TRUE. For the 100\% annuitisation case, we also have to change
-the argument for percentage to be annuitisied.
-<<ex4>>=
-
-# 40% annuity
-y <- pencalc(inflation=list(c(0.07,0)
-                           ,real=TRUE))
-y 
-@ 
 
 \subsection{Varying contribution rates} \label{ss:vary_contr}
 
-It is possible that subscribers increase their contributions to the
-NPS during their working life from the mandatory 20\%
-contributions. We therefore show an example of a contribution rate
-that is 20\% for the first five years, increases by 2\% every five
-years, and is 30\% for the last 11 years of working life. The
-remaining assumptions remain the same as that of the life-cycle
-portfolio allocation example described in Section
-\ref{ss:lifecycleN}. The R-code is shown below. We first set the
-vector of contributions in \texttt{cont\_vector}.
+In the case of informal sector workers, a constant contribution rate
+may not be feasible. This can be handled by using a vector of wages,
+and a contribution rate of 100\%. This effectively makes the values
+entered in the wage the actual contribution. 
+
+In the example described below, we simulate 36 values for wage from a
+normal distribution with a mean of Rs.3,000 and a standard deviation
+of 100. The generated wage profile is presented in the appendix. We
+then use a contribution rate of 100\%. All the other assumptions
+remain the same as that of the life-cycle portfolio allocation example
+described in Section \ref{ss:lifecycleN}.
 
 <<ex5>>=
-cont_vector<- c(rep(0.20,5), rep(0.22,5),rep(0.24,5),
-                rep(0.26,5),rep(0.28,5), rep(0.30,11))
+library(penCalc)
 
+wage = round(rnorm(36, 3000, 100),0) 
 set.seed(111)
-# 40% annuity
-x <- pencalc(wage=list(25000
-                 ,0.05
-                 ,cont_vector
-                 ,initial.amount=0))
+x <- pencalc(wage=list(wage
+                 ,0
+                 ,1
+                 ,initial.amount=0),
+             inflation=list(c(0.04,0)
+                 ,real=TRUE))
 x
+
 @ 
 
 
