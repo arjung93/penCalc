@@ -12,5 +12,5 @@ devtools::install_github("renukasane/penCalc")
 ##Help
 ```R
 ?pencalc
-vignette("penCalc", package="eventstudies")
+vignette("penCalc", package="penCalc")
 ```
