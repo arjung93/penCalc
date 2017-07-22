@@ -38,7 +38,7 @@
   \vspace*{0.1in}
 }
 \title{Simulating pension outcomes using penCalc}
-\author{Arjun Gupta, Renuka Sane \\
+\author{Renuka Sane, Arjun Gupta \\
 National Institute of Public Finance and Policy}
 % \VignetteIndexEntry{Examples of penCalc package}
 % \VignetteDepends{}  
@@ -68,24 +68,26 @@ the National Pension System (NPS).\footnote{The NPS is a defined
 \begin{table}
   \caption{Assumptions for penCalc} \label{t:assumptions}
   \begin{center}
-    \begin{tabular}{lr}
-      Age of entry & 25 \\
-      Age of exit & 60 \\
-      Starting wage & Rs.25,000 per month. \\
-      Wage growth (nominal) & 8\% per anum \\
-      Contribution rate & 20\% of wage \\
-      Inflation (mean, sd) & (4\%, 0) \\
-      Investment portfolio & Lifecyle \\
-      Returns (nominal) & \\
+    {\footnotesize
+      \begin{tabular}{lr}
+        Age of entry & 25 \\
+        Age of exit & 60 \\
+        Starting wage & Rs.25,000 per month. \\
+        Wage growth (nominal) & 8\% per anum \\
+        Contribution rate & 20\% of wage \\
+        Inflation (mean, sd) & (4\%, 0) \\
+        Investment portfolio & Lifecyle \\
+        Returns (nominal) & \\
         GOI bonds (mean, sd) & (7\%, 0) \\
         Corporate bonds (mean, sd) & (10\%, 0) \\
         Equities (mean, sd) & (16\%, 25\%) \\
-      Fees & 100 \\
+        Fees & 100 \\
         AUM & 0.01\% \\
         Flat fee & Rs.100 p.a. \\        
-     Percent to be annuitised & 40\% \\
-     Annuity price (nominal annuity) & Rs.4,087 \\
-    \end{tabular}
+        Percent to be annuitised & 40\% \\
+        Annuity price (nominal annuity) & Rs.4,087 \\
+      \end{tabular}
+      }
   \end{center}
 \end{table}
 
@@ -195,13 +197,14 @@ y
 
 The following example provides a demo of life-cycle portfolio
 allocation. The simulation uses the default life-cycle weights for
-allocation of contributions towards the three asset classes. All other
-assumptions remain the same. As we are using all the default values of
-the function, the R-code requires us to just run the \texttt{pencalc}
-function for the 40\% annuitisation case, and add the 100\%
-annuitisation parameter when required. The code also needs to indicate
-the use of the ``real'' option if calculations are to be done in real
-terms.
+allocation of contributions towards the three asset
+classes.\footnote{The allocation is provided in the Appendix} All
+other assumptions remain the same. As we are using all the default
+values of the function, the R-code requires us to just run the
+\texttt{pencalc} function for the 40\% annuitisation case, and add the
+100\% annuitisation parameter when required. The code also needs to
+indicate the use of the ``real'' option if calculations are to be done
+in real terms.
 
 <<ex2 >>=
 set.seed(111)
@@ -271,6 +274,14 @@ x
 
 @ 
 
+\newpage
+\section*{Appendix}
+The default weights in the lifecycle allocation are as follows:
+\begin{center}
+  \begin{scriptsize}
+    \input{inv_lc.gen}
+  \end{scriptsize}  
+\end{center}
 
 
 \end{document}
