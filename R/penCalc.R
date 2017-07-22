@@ -1,18 +1,16 @@
-## library(xtable)
-## library(ggplot2)
-## library(reshape)
-## library(zoo)
-## options(scipen=22)
+
+## Function to convert annualised returns to monthy return.
 
 annual2mthly <- function(x,y) {100*(((1+x/100)^(1/y))-1)}
 
+## Function to calcuate percentage change.
 
 percentChange <- function(series){ 
   serieslag <- lag(series ,-1)
   100*(series-serieslag)/serieslag 
 }
 
-## Creating monthly returns for equity, nifty and corp bonds 
+## Creating monthly returns for equity, nifty and corp bonds. 
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
                                         # Make a list from the ... arguments and plotlist
@@ -268,7 +266,7 @@ annuity_func<- function( annuity=list(proportion.annuitised=0.40,
 #'                annuity=list(proportion.annuitised=0.40,
 #'                             price=4087))
 #' @title pencalc
-#' @import zoo xtable ggplot2 reshape grid
+#' @import zoo xtable reshape grid
 #' @param age List of two elements : \enumerate{ \item age.entry: Age at which a person enters the pension system. \item age.exit: Age at which a person exits the pension system. }
 #' 
 #' @param wage List of four elements: \enumerate{ \item wage: There
@@ -370,10 +368,3 @@ print.penc <- function(x){
     print(x[[1]])
 }
 
-#' @export plot.penc
-plot.penc <- function(x){
-    p1 <- ggplot(data.frame(pension=x[[3]][[1]]), aes(x=pension)) + geom_density() 
-    p2 <- ggplot(data.frame(replacement=x[[3]][[2]]), aes(x=replacement)) + geom_density()
-    p3 <- ggplot(data.frame(in.hand.terminal=x[[3]][[3]]), aes(x=in.hand.terminal)) + geom_density()
-    multiplot(p1,p2,p3)
-}
