@@ -1,4 +1,4 @@
-#penCalc
+#penCalc (Testing git)
 
 An R package to simulate the expected accumulations and monthly
 pension at retirement. The simulations require assumptions on wages,
